@@ -2,6 +2,11 @@
 
 void RevertString(char *str)
 {
-	// your code here
+    char* Pointer=str,Buffer; 
+    for(;*Pointer;Pointer++); 
+    for(;str<Pointer;) 
+    Buffer=*str, 
+    *(str++)=*(--Pointer), 
+    *Pointer=Buffer; 
 }
 
