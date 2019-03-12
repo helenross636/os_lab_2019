@@ -1,0 +1,27 @@
+//1
+cc -s swap.c
+cc -o swap main.c swap.c
+./swap
+
+//2
+cc -c revert_string.c
+cc -o revert_string main.c revert_string.c
+./revert_string "frhgd"
+
+//3
+gcc -c revert_string/main.c -o task3/main.o
+gcc -c revert_string/revert_string.c -o task3/static/revert.o
+ar rcs task3/static/librevert_string.a task3/static/revert.o
+gcc task3/main.o -Ltask3/static -lrevert_string -o task3/stat_linked
+./task3/stat_linked "htdhdh fh"
+
+gcc -c -fPIC revert_string/revert_string.c -o task3/dynamic/revert.o
+gcc -shared task3/dynamic/revert.o -o task3/dynamic/libuse_dyn_lib.so
+gcc task3/main.o -Ltask3/dynamic -luse_dyn_lib -o task3/dynamic/use_dyn_link
+LD_LIBRARY_PATH=$(pwd)/task3/dynamic task3/dynamic/use_dyn_link "qwerty"
+
+//4
+ln revert_string/revert_string.h tests/revert_string.h
+sudo apt-get install libcunitl libcunitl-doc libcunitl-dev
+gcc -Wall -o tests/tests tests/tests.c -Ltask3/dynamic -luse_dyn_lib -lcunit
+export LD_LIBRARY_PATH=task3/dynamic; ./tests/tests

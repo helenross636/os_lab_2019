@@ -1,4 +1,5 @@
 #include <CUnit/Basic.h>
+#include <CUnit/CUnit.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -9,6 +10,7 @@ void testRevertString(void) {
   char str_with_spaces[] = "String with spaces";
   char str_with_odd_chars_num[] = "abc";
   char str_with_even_chars_num[] = "abcd";
+  char str_dop[] = "dop test 5";
 
   RevertString(simple_string);
   CU_ASSERT_STRING_EQUAL_FATAL(simple_string, "olleH");
@@ -21,6 +23,10 @@ void testRevertString(void) {
 
   RevertString(str_with_even_chars_num);
   CU_ASSERT_STRING_EQUAL_FATAL(str_with_even_chars_num, "dcba");
+  
+  RevertString(str_dop);
+  CU_ASSERT_STRING_EQUAL_FATAL(str_dop, "5 tset pod");
+  
 }
 
 int main() {
