@@ -1,0 +1,2 @@
+./pmm --seed 346 --array_size 10 --pnum 3 --timeout 1
+ps -all
