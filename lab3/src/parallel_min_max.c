@@ -40,18 +40,27 @@ int main(int argc, char **argv) {
         switch (option_index) {
           case 0:
             seed = atoi(optarg);
-            // your code here
-            // error handling
+            if(seed<0)
+            {
+                printf("Seed must be positive!\n");
+                return 1;
+            }
             break;
           case 1:
             array_size = atoi(optarg);
-            // your code here
-            // error handling
+            if(array_size<0)
+            {
+                printf("Array size must be positive!\n");
+                return 1;
+            }
             break;
           case 2:
             pnum = atoi(optarg);
-            // your code here
-            // error handling
+            if(pnum<0)
+            {
+                printf("Pnum must be positive!\n");
+                return 1;
+            }
             break;
           case 3:
             with_files = true;
@@ -91,6 +100,10 @@ int main(int argc, char **argv) {
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
 
+  int fileDescriptors[2];
+  pipe(fileDescriptors);
+  int fileDescriptorsLen=array_size/pnum;
+
   for (int i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
     if (child_pid >= 0) {
@@ -98,13 +111,25 @@ int main(int argc, char **argv) {
       active_child_processes += 1;
       if (child_pid == 0) {
         // child process
-
+        struct MinMax minmax;
+        if(i!=pnum-1) minmax=GetMinMax(array,i*fileDescriptorsLen,(i+1)*fileDescriptorsLen);
+        else minmax=GetMinMax(array,i*fileDescriptorsLen,array_size);
         // parallel somehow
 
         if (with_files) {
-          // use files here
-        } else {
-          // use pipe here
+            FILE *file;
+            if((file=fopen("file.txt","w"))==0)
+            {
+                printf("Couldn't open file\n");
+                return 1;
+            }
+            else{fwrite(&minmax,sizeof(struct MinMax),1,file);}
+            fclose(file);
+        } 
+        else 
+        {
+            write(fileDescriptors[1],&minmax,sizeof(struct MinMax));
+            close(fileDescriptors[1]);  //внесение результата в поток и закрытие досткпа для процесса
         }
         return 0;
       }
@@ -117,7 +142,7 @@ int main(int argc, char **argv) {
 
   while (active_child_processes > 0) {
     // your code here
-
+    wait(NULL); //ожидание окончания процесса
     active_child_processes -= 1;
   }
 
@@ -125,18 +150,33 @@ int main(int argc, char **argv) {
   min_max.min = INT_MAX;
   min_max.max = INT_MIN;
 
-  for (int i = 0; i < pnum; i++) {
-    int min = INT_MAX;
-    int max = INT_MIN;
+  for (int i = 0; i < pnum; i++) 
+  {
+    struct MinMax Min_Max;
 
-    if (with_files) {
+    if (with_files) 
+    {
       // read from files
-    } else {
-      // read from pipes
+      FILE *file=fopen("file.txt","rb");
+      if(file==0)
+      {
+          printf("Couldn't open file\n");
+          return 1;
+      }
+      else
+      {
+          fseek(file,i*sizeof(struct MinMax),SEEK_SET);
+          fread(&Min_Max,sizeof(struct MinMax),1,file);
+      }
+      fclose(file);
+    }
+    else 
+    {
+      read(fileDescriptors[0],&Min_Max,sizeof(struct MinMax)); // read from pipes
     }
 
-    if (min < min_max.min) min_max.min = min;
-    if (max > min_max.max) min_max.max = max;
+    if (Min_Max.min < min_max.min) min_max.min = Min_Max.min;
+    if (Min_Max.max > min_max.max) min_max.max = Min_Max.max;
   }
 
   struct timeval finish_time;
